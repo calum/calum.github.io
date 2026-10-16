@@ -36,8 +36,9 @@
       height: auto;
       max-width: 100%;
       max-height: 65vh;
-      border-radius: 8px;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+      /* Fade the bottom edge into the background so there's no visible border */
+      -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
     }
     h1 { font-size: 1.8rem; margin: 20px 0 8px; }
     #datetime {
