@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calum</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --fg: #1b2430;
+      --muted: #5b6676;
+      --accent: #2d75b6;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0f1419;
+        --fg: #e6edf3;
+        --muted: #9aa7b4;
+        --accent: #6cb2f0;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0f1419;
+      --fg: #e6edf3;
+      --muted: #9aa7b4;
+      --accent: #6cb2f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      text-align: center;
+    }
+    main { max-width: 420px; width: 100%; }
+    img {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: center top;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+    }
+    h1 { font-size: 1.8rem; margin: 20px 0 8px; }
+    #datetime {
+      font-size: 1.05rem;
+      color: var(--muted);
+      margin: 0 0 24px;
+      font-variant-numeric: tabular-nums;
+    }
+    a.profile {
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    a.profile:hover, a.profile:focus-visible {
+      background: var(--accent);
+      color: var(--bg);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="profile.jpg" alt="Calum's profile picture">
+    <h1>Calum</h1>
+    <p id="datetime" aria-live="off">Loading date and time…</p>
+    <a class="profile" href="https://github.com/calum" target="_blank" rel="noopener">View my GitHub profile</a>
+  </main>
+
+  <script>
+    (function () {
+      var el = document.getElementById('datetime');
+      function update() {
+        var now = new Date();
+        var text = now.toLocaleString(undefined, {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        el.textContent = text;
+      }
+      update();
+      setInterval(update, 1000);
+    })();
+  </script>
+</body>
+</html>
