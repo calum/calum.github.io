@@ -40,13 +40,7 @@
       -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
       mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
     }
-    h1 { font-size: 1.8rem; margin: 20px 0 8px; }
-    #datetime {
-      font-size: 1.05rem;
-      color: var(--muted);
-      margin: 0 0 24px;
-      font-variant-numeric: tabular-nums;
-    }
+    h1 { font-size: 1.8rem; margin: 0 0 8px; }
     a.profile {
       display: inline-block;
       padding: 10px 20px;
@@ -61,14 +55,16 @@
       color: var(--bg);
     }
     /* Scoped to this list so the terminal-style font doesn't leak into other elements */
+    .projects-heading { font-size: 1.2rem; margin: 32px 0 8px; }
     ul.projects {
-      list-style: none;
-      padding: 0;
-      margin: 24px 0 0;
+      list-style: disc;
+      padding-left: 20px;
+      margin: 0;
+      text-align: left;
       font-family: "Courier New", Courier, monospace;
     }
     ul.projects li + li { margin-top: 8px; }
-    ul.projects a { color: var(--fg); background: #000; font-weight: bold; }
+    ul.projects a { color: var(--fg); background: #000; font-weight: bold; text-decoration: none; }
     @keyframes rainbow { 0.0% { color: #ff0000; } 14.3% { color: #00ff00; } 28.6% { color: #ffff00; } 42.9% { color: #0000ff; } 57.1% { color: #ff00ff; } 71.4% { color: #00ffff; } 85.7% { color: #ffffff; } }
     ul.projects a span { animation: rainbow 1.4s steps(1) infinite; }
     @media (prefers-reduced-motion: reduce) { ul.projects a span { animation: none; } }
@@ -76,35 +72,15 @@
 </head>
 <body>
   <main>
-    <img src="profile.jpg" alt="Calum's profile picture">
     <h1>Calum</h1>
-    <p id="datetime" aria-live="off">Loading date and time…</p>
+    <img src="profile.jpg" alt="Calum's profile picture">
     <a class="profile" href="https://github.com/calum" target="_blank" rel="noopener">View my GitHub profile</a>
+    <h2 class="projects-heading">Projects</h2>
     <ul class="projects">
       <li><a href="https://calum.github.io/terminal_graphics_api/" aria-label="TERMINAL GRAPHICS"><span style="animation-delay:-0s">T</span><span style="animation-delay:-0.2s">E</span><span style="animation-delay:-0.4s">R</span><span style="animation-delay:-0.6s">M</span><span style="animation-delay:-0.8s">I</span><span style="animation-delay:-1s">N</span><span style="animation-delay:-1.2s">A</span><span style="animation-delay:-1.4s">L</span> <span style="animation-delay:-1.8000001s">G</span><span style="animation-delay:-2s">R</span><span style="animation-delay:-2.2s">A</span><span style="animation-delay:-2.4s">P</span><span style="animation-delay:-2.6000001s">H</span><span style="animation-delay:-2.8s">I</span><span style="animation-delay:-3s">C</span><span style="animation-delay:-3.2s">S</span></a></li>
       <li><a href="https://calum.github.io/terminal_image_display/" aria-label="TERMAGE"><span style="animation-delay:-0s">T</span><span style="animation-delay:-0.2s">E</span><span style="animation-delay:-0.4s">R</span><span style="animation-delay:-0.6s">M</span><span style="animation-delay:-0.8s">A</span><span style="animation-delay:-1s">G</span><span style="animation-delay:-1.2s">E</span></a></li>
     </ul>
   </main>
 
-  <script>
-    (function () {
-      var el = document.getElementById('datetime');
-      function update() {
-        var now = new Date();
-        var text = now.toLocaleString(undefined, {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit'
-        });
-        el.textContent = text;
-      }
-      update();
-      setInterval(update, 1000);
-    })();
-  </script>
 </body>
 </html>
