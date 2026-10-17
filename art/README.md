@@ -83,6 +83,21 @@ to see through return `-1.0`, as the ocean in `src/arts/mod.rs` does for its bri
 Layers are drawn in the order they are listed, so a layer later in the list paints over
 the ones before it.
 
+## What is on the site now
+
+Drawn in this order (see `fn all` in `src/arts/mod.rs`): the sparkles, then the ocean, then the fireballs.
+The fireballs go last so that you can see them sink into the water.
+
+- **Ocean:** `src/arts/ocean.rs` says where the water is (`LEVEL`, how far down the window, and the waves).
+  Both the ocean and the fireballs ask it, so they always agree. If you change `LEVEL`, change
+  `--wave-clearance` in `index.html` to match.
+- **Fireballs:** `src/arts/fireballs.rs`. They bounce off the walls and each other and are pulled down
+  a tiny bit (`GRAVITY`, 0.001 per frame; 0 is none, the library's bubbles used -0.004 to rise). A ball
+  that touches the waves (the bottom edge of the ball reaching the surface) turns grey, can no longer bounce off the walls or other balls, shrinks away in about 1.5 s, and a new ball appears
+  somewhere above the water with a random velocity. `BALLS`, `RADIUS` and the fade length are consts at
+  the top of the file. With the default gravity a ball lasts about 7 s on average.
+  This is the library's `World` physics with the water added; a `World` cannot recolour or replace a ball.
+
 ## What an animation gets each frame
 
 `fn frame(&mut self, display: &mut Display, frame: &Frame)` runs about 30 times a second.

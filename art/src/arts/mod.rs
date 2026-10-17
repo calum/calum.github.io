@@ -59,29 +59,20 @@
 //! }
 //! ```
 
-use crate::{Layers, Palette, World};
+use crate::{Layers, Palette};
 
+mod fireballs;
+mod ocean;
 mod sparkle;
 
 /// The animations on the page, first drawn first.
 pub fn all(mut layers: Layers) -> Layers {
     layers.add::<sparkle::Sparkle>();
 
-    // Fire balls!
-    layers.world(
-        World::new()
-            .balls(4)
-            .size(3.0)
-            .gravity(0.0)
-            .trails()
-            .palette(Palette::fire()),
-    );
-
     // An ocean. The mouse makes a glow, and the waves roll on.
     layers.sketch(Palette::ocean(), |cell| {
-        let swell =
-            (cell.x * 0.08 + cell.t).sin() * 0.5 + (cell.x * 0.19 - cell.t * 1.3).sin() * 0.25;
-        let surface = cell.height * 0.85 + swell * 6.0;
+        // where the water is comes from `ocean.rs`, which the fireballs share
+        let surface = ocean::surface(cell.x, cell.t, cell.height);
         let glow = (-(cell.dist_to_mouse() * 0.12)).exp();
         let shade = ((surface - cell.y) * 0.25 + glow * 0.5).clamp(-1.0, 1.0);
         // On a terminal the sky is solid white; on the page that would hide
@@ -94,13 +85,17 @@ pub fn all(mut layers: Layers) -> Layers {
             shade
         }
     });
+
+    // Fire balls! They go after the ocean so they can be seen sinking into it.
+    layers.add::<fireballs::Fireballs>();
+
     layers
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Colour, Machine};
+    use crate::{Colour, Machine, World};
     use std::collections::BTreeSet;
 
     /// The foreground colours (as palette indexes) of every sparkle glyph on screen.
