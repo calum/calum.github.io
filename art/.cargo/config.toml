@@ -1,0 +1,3 @@
+[alias]
+# `cargo dev` from this folder: build, serve the site and reload the browser on every save
+dev = "run --bin dev --"
