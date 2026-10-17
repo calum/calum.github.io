@@ -1,0 +1,19 @@
+[package]
+name = "site_art"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+# cdylib is the WebAssembly module; rlib lets `cargo test` run on your machine
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+terminal_graphics_interactive = { git = "https://github.com/calum/terminal_graphics_interactive" }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

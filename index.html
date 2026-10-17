@@ -75,6 +75,8 @@
     @keyframes rainbow { 0.0% { color: #ff0000; } 14.3% { color: #00ff00; } 28.6% { color: #ffff00; } 42.9% { color: #0000ff; } 57.1% { color: #ff00ff; } 71.4% { color: #00ffff; } 85.7% { color: #ffffff; } }
     ul.projects a span { animation: rainbow 1.4s steps(1) infinite; }
     @media (prefers-reduced-motion: reduce) { ul.projects a span { animation: none; } }
+    /* Terminal art laid over the whole window; it never takes clicks (see overlay.js) */
+    #art { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 10; }
   </style>
 </head>
 <body>
@@ -85,9 +87,12 @@
     <h2 class="projects-heading">Projects</h2>
     <ul class="projects">
       <li><a href="https://calum.github.io/terminal_graphics_api/" aria-label="TERMINAL GRAPHICS"><span style="animation-delay:-0s">T</span><span style="animation-delay:-0.2s">E</span><span style="animation-delay:-0.4s">R</span><span style="animation-delay:-0.6s">M</span><span style="animation-delay:-0.8s">I</span><span style="animation-delay:-1s">N</span><span style="animation-delay:-1.2s">A</span><span style="animation-delay:-1.4s">L</span> <span style="animation-delay:-1.8000001s">G</span><span style="animation-delay:-2s">R</span><span style="animation-delay:-2.2s">A</span><span style="animation-delay:-2.4s">P</span><span style="animation-delay:-2.6000001s">H</span><span style="animation-delay:-2.8s">I</span><span style="animation-delay:-3s">C</span><span style="animation-delay:-3.2s">S</span></a></li>
+      <li><a href="https://calum.github.io/terminal_graphics_interactive/" aria-label="TERMINAL GRAPHICS INTERACTIVE"><span style="animation-delay:-0s">T</span><span style="animation-delay:-0.2s">E</span><span style="animation-delay:-0.4s">R</span><span style="animation-delay:-0.6s">M</span><span style="animation-delay:-0.8s">I</span><span style="animation-delay:-1s">N</span><span style="animation-delay:-1.2s">A</span><span style="animation-delay:-1.4s">L</span> <span style="animation-delay:-1.8s">G</span><span style="animation-delay:-2s">R</span><span style="animation-delay:-2.2s">A</span><span style="animation-delay:-2.4s">P</span><span style="animation-delay:-2.6s">H</span><span style="animation-delay:-2.8s">I</span><span style="animation-delay:-3s">C</span><span style="animation-delay:-3.2s">S</span> <span style="animation-delay:-3.6s">I</span><span style="animation-delay:-3.8s">N</span><span style="animation-delay:-4s">T</span><span style="animation-delay:-4.2s">E</span><span style="animation-delay:-4.4s">R</span><span style="animation-delay:-4.6s">A</span><span style="animation-delay:-4.8s">C</span><span style="animation-delay:-5s">T</span><span style="animation-delay:-5.2s">I</span><span style="animation-delay:-5.4s">V</span><span style="animation-delay:-5.6s">E</span></a></li>
       <li><a href="https://calum.github.io/terminal_image_display/" aria-label="TERMAGE"><span style="animation-delay:-0s">T</span><span style="animation-delay:-0.2s">E</span><span style="animation-delay:-0.4s">R</span><span style="animation-delay:-0.6s">M</span><span style="animation-delay:-0.8s">A</span><span style="animation-delay:-1s">G</span><span style="animation-delay:-1.2s">E</span></a></li>
     </ul>
   </main>
 
+  <canvas id="art" aria-hidden="true"></canvas>
+  <script src="overlay.js"></script>
 </body>
 </html>
