@@ -62,6 +62,7 @@
   }
 
   function sendScroll() {
+    if (!wasm) return;
     var root = document.documentElement;
     var range = root.scrollHeight - root.clientHeight;
     wasm.scroll(range > 0 ? window.scrollY / range : 0);
@@ -111,7 +112,9 @@
 
   // ---- input, forwarded to the art and left alone for the page
 
+  // Input can arrive before art.wasm has loaded; until then there is nobody to tell.
   function forward(kind, event) {
+    if (!wasm) return;
     wasm.pointer(kind, event.clientX / cellW, event.clientY / cellH);
   }
   window.addEventListener("pointermove", function (e) {
@@ -125,6 +128,7 @@
   window.addEventListener("pointercancel", release, { passive: true });
 
   window.addEventListener("wheel", function (e) {
+    if (!wasm) return;
     // deltaMode: 0 pixels, 1 lines, 2 pages
     var rowsMoved = e.deltaMode === 0 ? e.deltaY / cellH : e.deltaMode === 1 ? e.deltaY : e.deltaY * rows;
     wasm.wheel(rowsMoved);
@@ -132,6 +136,7 @@
   window.addEventListener("scroll", sendScroll, { passive: true });
 
   window.addEventListener("keydown", function (e) {
+    if (!wasm) return;
     var code = KEYS[e.key];
     if (code !== undefined) code += NAMED;
     else if (e.key.length === 1 || [...e.key].length === 1) code = e.key.codePointAt(0);
