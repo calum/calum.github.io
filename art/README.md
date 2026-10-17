@@ -93,9 +93,9 @@ The fireballs go last so that you can see them sink into the water.
   `--wave-clearance` in `index.html` to match.
 - **Fireballs:** `src/arts/fireballs.rs`. They bounce off the walls and each other and are pulled down
   a tiny bit (`GRAVITY`, 0.001 per frame; 0 is none, the library's bubbles used -0.004 to rise). A ball
-  whose centre goes under the waves turns grey, shrinks away in about 1.5 s, and a new ball appears
+  that touches the waves (the bottom edge of the ball reaching the surface) turns grey, can no longer bounce off the walls or other balls, shrinks away in about 1.5 s, and a new ball appears
   somewhere above the water with a random velocity. `BALLS`, `RADIUS` and the fade length are consts at
-  the top of the file. With the default gravity a ball lasts about 8 s on average.
+  the top of the file. With the default gravity a ball lasts about 7 s on average.
   This is the library's `World` physics with the water added; a `World` cannot recolour or replace a ball.
 
 ## What an animation gets each frame
