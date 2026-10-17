@@ -104,9 +104,16 @@ impl Layers {
         self.layers.push(Box::new(art));
     }
 
-    /// Adds a [`World`] (balls, gravity, trails and so on) as a layer.
+    /// Adds a [`World`] (balls, gravity, trails and so on) as a layer. Clicks
+    /// are left for the page; see [`Layers::world_clickable`].
     pub fn world(&mut self, world: World) {
         let art = WorldArt::new(&world, self.cols, self.rows, self.next_seed());
+        self.layers.push(Box::new(art));
+    }
+
+    /// Like [`Layers::world`], but a click adds a ball.
+    pub fn world_clickable(&mut self, world: World) {
+        let art = WorldArt::new(&world, self.cols, self.rows, self.next_seed()).clickable();
         self.layers.push(Box::new(art));
     }
 

@@ -54,8 +54,8 @@ layers.world(
 ```
 
 Take any `World::new()...` chain from the library, drop the `.run()` and pass it to
-`layers.world(...)`. Add `.mouse_pulls()` if you want the mouse to attract the balls;
-clicks add a ball either way. `Palette::mono()`, `ocean()`, `fire()` and `rainbow()` exist.
+`layers.world(...)`. Add `.mouse_pulls()` if you want the mouse to attract the balls.
+Clicks are left for the page and do not add balls; to let them, use `layers.world_clickable(...)`. `Palette::mono()`, `ocean()`, `fire()` and `rainbow()` exist.
 Only the character and its foreground colour are painted, so the darkest shade of a
 palette (a blank cell) is left see-through.
 

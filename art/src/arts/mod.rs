@@ -67,10 +67,10 @@ mod sparkle;
 pub fn all(mut layers: Layers) -> Layers {
     layers.add::<sparkle::Sparkle>();
 
-    // Bubbles float up (gravity is negative). Click to add one.
+    // Bubbles float up (gravity is negative). Clicks go to the page, not to the bubbles.
     layers.world(
         World::new()
-            .balls(3)
+            .balls(4)
             .size(3.0)
             .gravity(-0.004)
             .trails()
