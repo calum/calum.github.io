@@ -78,3 +78,48 @@ pub fn all(mut layers: Layers) -> Layers {
     );
     layers
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Colour, Machine};
+    use std::collections::BTreeSet;
+
+    /// The foreground colours (as palette indexes) of every sparkle glyph on screen.
+    fn sparkle_colours(palette: Palette) -> BTreeSet<u32> {
+        let mut layers = Layers::new(80, 30, 5);
+        layers.add::<sparkle::Sparkle>();
+        layers.world(World::new().balls(4).size(3.0).trails().palette(palette));
+        let mut machine: Machine<Layers> = Machine::from_art(layers, 80, 30);
+        for frame in 0..60 {
+            machine.pointer(0, 20.0 + frame as f32, 15.0);
+            machine.tick(34.0);
+        }
+        machine
+            .cells
+            .chunks(2)
+            .filter(|cell| ['*', '+', '.'].contains(&char::from_u32(cell[0]).unwrap()))
+            .map(|cell| cell[1] & 255)
+            .collect()
+    }
+
+    #[test]
+    fn a_worlds_palette_does_not_change_the_sparkle_colour() {
+        let yellow = Colour::ALL
+            .iter()
+            .position(|c| *c == Colour::BrightYellow)
+            .unwrap() as u32;
+        for palette in [
+            Palette::mono(),
+            Palette::fire(),
+            Palette::ocean(),
+            Palette::rainbow(),
+        ] {
+            assert_eq!(
+                sparkle_colours(palette.clone()),
+                BTreeSet::from([yellow]),
+                "{palette:?}"
+            );
+        }
+    }
+}
