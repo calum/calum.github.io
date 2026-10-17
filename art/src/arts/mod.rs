@@ -70,7 +70,7 @@ pub fn all(mut layers: Layers) -> Layers {
     // Bubbles float up (gravity is negative). Click to add one.
     layers.world(
         World::new()
-            .balls(4)
+            .balls(3)
             .size(3.0)
             .gravity(-0.004)
             .trails()
