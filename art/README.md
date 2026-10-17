@@ -59,6 +59,30 @@ Clicks are left for the page and do not add balls; to let them, use `layers.worl
 Only the character and its foreground colour are painted, so the darkest shade of a
 palette (a blank cell) is left see-through.
 
+## Or paste a sketch (one formula for every cell)
+
+Same idea for the library's `sketch_with` art: drop the `fn main` and the `sketch_with`,
+and pass the palette and the formula to `layers.sketch(...)` in `fn all`.
+The ocean on the site is one:
+
+```rust
+layers.sketch(Palette::ocean(), |cell| {
+    let swell = (cell.x * 0.08 + cell.t).sin() * 0.5 + (cell.x * 0.19 - cell.t * 1.3).sin() * 0.25;
+    let surface = cell.height / 2.0 + swell * 6.0;
+    let glow = (-(cell.dist_to_mouse() * 0.12)).exp();
+    ((surface - cell.y) * 0.25 + glow * 0.5).clamp(-1.0, 1.0)
+});
+```
+
+**Mind the page.** A sketch gives every cell a shade, and in a terminal that fills the
+screen. Here the page is underneath, so the darkest shade of the palette is see-through
+but every other shade is painted. A formula that is bright over a large area covers the page
+(the plain ocean above paints the whole top of the page solid white). Make the parts you want
+to see through return `-1.0`, as the ocean in `src/arts/mod.rs` does for its brightest shades.
+
+Layers are drawn in the order they are listed, so a layer later in the list paints over
+the ones before it.
+
 ## What an animation gets each frame
 
 `fn frame(&mut self, display: &mut Display, frame: &Frame)` runs about 30 times a second.

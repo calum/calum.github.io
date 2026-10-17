@@ -21,12 +21,14 @@
 //! - `palette(index)`: the `0xRRGGBB` value of a palette colour
 
 mod arts;
+mod sketch_art;
 mod world_art;
 
+pub use sketch_art::SketchArt;
 pub use world_art::WorldArt;
 
 pub use terminal_graphics_interactive::prelude::*;
-pub use terminal_graphics_interactive::Simulation;
+pub use terminal_graphics_interactive::{Cell, Simulation};
 
 use std::cell::RefCell;
 
@@ -117,6 +119,15 @@ impl Layers {
         self.layers.push(Box::new(art));
     }
 
+    /// Adds a sketch: `formula` is called for every cell, every frame, and
+    /// returns -1.0 to 1.0, which `palette` turns into a shade. The darkest
+    /// shade is left see-through. See the library's `sketch_with` examples.
+    pub fn sketch(&mut self, palette: Palette, formula: impl FnMut(&Cell) -> f32 + 'static) {
+        self.layers.push(Box::new(SketchArt::new(
+            palette, self.cols, self.rows, formula,
+        )));
+    }
+
     /// Each layer gets its own seed.
     fn next_seed(&self) -> u32 {
         self.seed.wrapping_add(self.layers.len() as u32 * 7919)
@@ -138,6 +149,21 @@ impl Art for Layers {
     fn frame(&mut self, display: &mut Display, frame: &Frame) {
         for layer in &mut self.layers {
             layer.frame(display, frame);
+        }
+    }
+}
+
+/// Copies the cells of `from` that have something in them onto `onto`. For
+/// arts that draw every cell, blanks included, which would wipe out the layers
+/// below them.
+pub(crate) fn paint_over(from: &Display, onto: &mut Display) {
+    for y in 0..from.height() as isize {
+        for x in 0..from.width() as isize {
+            if let Some(pixel) = from.pixel(x, y) {
+                if pixel.character() != ' ' {
+                    onto.set_pixel(x, y, pixel.character(), pixel.colour(), pixel.background());
+                }
+            }
         }
     }
 }

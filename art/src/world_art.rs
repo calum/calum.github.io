@@ -1,7 +1,7 @@
 //! Runs a [`World`] (the library's ready-made balls, gravity and trails) as a
 //! layer, so a few chained settings make an animation with no code.
 
-use crate::{Art, Display, Frame, Pointer, Simulation, World};
+use crate::{paint_over, Art, Display, Frame, Pointer, Simulation, World};
 
 /// A [`World`] as an [`Art`]. Make one with `Layers::world`.
 pub struct WorldArt {
@@ -56,21 +56,7 @@ impl Art for WorldArt {
         }
         self.simulation.render(&mut self.scratch);
 
-        for y in 0..self.scratch.height() as isize {
-            for x in 0..self.scratch.width() as isize {
-                if let Some(pixel) = self.scratch.pixel(x, y) {
-                    if pixel.character() != ' ' {
-                        display.set_pixel(
-                            x,
-                            y,
-                            pixel.character(),
-                            pixel.colour(),
-                            pixel.background(),
-                        );
-                    }
-                }
-            }
-        }
+        paint_over(&self.scratch, display);
     }
 }
 
