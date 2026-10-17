@@ -6,7 +6,16 @@
 //! 1. Make `src/arts/comet.rs` (copy `sparkle.rs`, or start from the template
 //!    below) and give the struct a new name.
 //! 2. Add `mod comet;` below.
-//! 3. Add one line to [`all`]: `layers.add::<comet::Comet>(cols, rows, seed);`
+//! 3. Add one line to [`all`]: `layers.add::<comet::Comet>();`
+//!
+//! # Or skip the code: add a `World`
+//!
+//! The library's ready-made worlds (bouncing balls, gravity, trails, palettes)
+//! are one call. Paste the `World` from any of its examples:
+//!
+//! ```ignore
+//! layers.world(World::new().balls(14).size(1.6).gravity(-0.004).mouse_pulls().trails().palette(Palette::ocean()));
+//! ```
 //!
 //! Animations are drawn in the order they are listed, so a later one paints
 //! over an earlier one wherever they overlap. To switch one off, comment out
@@ -50,13 +59,22 @@
 //! }
 //! ```
 
-use crate::Layers;
+use crate::{Layers, Palette, World};
 
 mod sparkle;
 
 /// The animations on the page, first drawn first.
-pub fn all(cols: u32, rows: u32, seed: u32) -> Layers {
-    let mut layers = Layers::default();
-    layers.add::<sparkle::Sparkle>(cols, rows, seed);
+pub fn all(mut layers: Layers) -> Layers {
+    layers.add::<sparkle::Sparkle>();
+
+    // Bubbles float up (gravity is negative). Click to add one.
+    layers.world(
+        World::new()
+            .balls(4)
+            .size(3.0)
+            .gravity(-0.004)
+            .trails()
+            .palette(Palette::mono()),
+    );
     layers
 }

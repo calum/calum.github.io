@@ -21,8 +21,12 @@
 //! - `palette(index)`: the `0xRRGGBB` value of a palette colour
 
 mod arts;
+mod world_art;
 
-pub use terminal_graphics_interactive::{Colour, Display, Key, KeyCode, Modifiers, Pointer};
+pub use world_art::WorldArt;
+
+pub use terminal_graphics_interactive::prelude::*;
+pub use terminal_graphics_interactive::Simulation;
 
 use std::cell::RefCell;
 
@@ -76,30 +80,56 @@ pub trait Art {
 
 /// Several arts drawn on top of one another, first to last, so a later one
 /// paints over an earlier one. Build it in `arts/mod.rs`.
-#[derive(Default)]
-pub struct Layers(Vec<Box<dyn Art>>);
+pub struct Layers {
+    layers: Vec<Box<dyn Art>>,
+    cols: u32,
+    rows: u32,
+    seed: u32,
+}
 
 impl Layers {
-    /// Adds the art `A`. Each layer gets its own seed.
-    pub fn add<A: Art + 'static>(&mut self, cols: u32, rows: u32, seed: u32) {
-        let seed = seed.wrapping_add(self.0.len() as u32 * 7919);
-        self.0.push(Box::new(A::new(cols, rows, seed)));
+    /// No layers yet, for a window of `cols` by `rows` cells.
+    pub fn new(cols: u32, rows: u32, seed: u32) -> Layers {
+        Layers {
+            layers: Vec::new(),
+            cols,
+            rows,
+            seed,
+        }
+    }
+
+    /// Adds the art `A`.
+    pub fn add<A: Art + 'static>(&mut self) {
+        let art = A::new(self.cols, self.rows, self.next_seed());
+        self.layers.push(Box::new(art));
+    }
+
+    /// Adds a [`World`] (balls, gravity, trails and so on) as a layer.
+    pub fn world(&mut self, world: World) {
+        let art = WorldArt::new(&world, self.cols, self.rows, self.next_seed());
+        self.layers.push(Box::new(art));
+    }
+
+    /// Each layer gets its own seed.
+    fn next_seed(&self) -> u32 {
+        self.seed.wrapping_add(self.layers.len() as u32 * 7919)
     }
 }
 
 impl Art for Layers {
     fn new(cols: u32, rows: u32, seed: u32) -> Layers {
-        arts::all(cols, rows, seed)
+        arts::all(Layers::new(cols, rows, seed))
     }
 
     fn resize(&mut self, cols: u32, rows: u32) {
-        for layer in &mut self.0 {
+        (self.cols, self.rows) = (cols, rows);
+        for layer in &mut self.layers {
             layer.resize(cols, rows);
         }
     }
 
     fn frame(&mut self, display: &mut Display, frame: &Frame) {
-        for layer in &mut self.0 {
+        for layer in &mut self.layers {
             layer.frame(display, frame);
         }
     }
@@ -616,9 +646,9 @@ mod tests {
 
     #[test]
     fn layers_draw_in_order_and_later_ones_paint_over_earlier_ones() {
-        let mut layers = Layers::default();
-        layers.add::<Row>(10, 5, 1);
-        layers.0.push(Box::new(Probe::new(10, 5, 1)));
+        let mut layers = Layers::new(10, 5, 1);
+        layers.add::<Row>();
+        layers.add::<Probe>();
         let mut m: Machine<Layers> = Machine::from_art(layers, 10, 5);
         m.pointer(0, 2.0, 0.0);
         m.tick(40.0);
@@ -629,9 +659,9 @@ mod tests {
 
     #[test]
     fn every_layer_is_told_about_a_resize() {
-        let mut layers = Layers::default();
-        layers.0.push(Box::new(Probe::new(10, 5, 1)));
-        layers.0.push(Box::new(Probe::new(10, 5, 1)));
+        let mut layers = Layers::new(10, 5, 1);
+        layers.add::<Probe>();
+        layers.add::<Probe>();
         let mut m: Machine<Layers> = Machine::from_art(layers, 10, 5);
         m.resize(30, 9);
         assert!(m.tick(40.0)); // both layers drew on the new grid without a panic
@@ -654,9 +684,9 @@ mod tests {
                 );
             }
         }
-        let mut layers = Layers::default();
-        layers.add::<Seed>(10_000, 1, 0);
-        layers.add::<Seed>(10_000, 1, 0);
+        let mut layers = Layers::new(10_000, 1, 0);
+        layers.add::<Seed>();
+        layers.add::<Seed>();
         let mut m: Machine<Layers> = Machine::from_art(layers, 1000, 1);
         m.tick(40.0);
         assert_eq!(m.cells.chunks(2).filter(|c| c[0] == 's' as u32).count(), 2);

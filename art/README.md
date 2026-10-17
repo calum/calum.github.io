@@ -29,13 +29,35 @@ they are listed, so later ones paint over earlier ones.
 1. Copy `src/arts/sparkle.rs` to `src/arts/comet.rs`. Rename the struct inside (`Sparkle` to `Comet`)
    and change what it does. There is also a tiny template at the top of `src/arts/mod.rs`.
 2. In `src/arts/mod.rs` add `mod comet;` next to `mod sparkle;`.
-3. In `fn all` in the same file add `layers.add::<comet::Comet>(cols, rows, seed);`.
+3. In `fn all` in the same file add `layers.add::<comet::Comet>();`.
 
 Save. The new animation is on the page next to the sparkles. To turn one off, comment out
 its `layers.add` line. To remove it, delete its file and its two lines.
 
 Each animation keeps its own state and cannot see the others. To make two interact, put
 them in one file.
+
+## Or just paste a `World`, no file needed
+
+The library's ready-made worlds (see its `examples/`) are one call in `fn all` in
+`src/arts/mod.rs`. The bubbles on the site are exactly this:
+
+```rust
+layers.world(
+    World::new()
+        .balls(4)
+        .size(3.0)
+        .gravity(-0.004)
+        .trails()
+        .palette(Palette::mono()),
+);
+```
+
+Take any `World::new()...` chain from the library, drop the `.run()` and pass it to
+`layers.world(...)`. Add `.mouse_pulls()` if you want the mouse to attract the balls;
+clicks add a ball either way. `Palette::mono()`, `ocean()`, `fire()` and `rainbow()` exist.
+Only the character and its foreground colour are painted, so the darkest shade of a
+palette (a blank cell) is left see-through.
 
 ## What an animation gets each frame
 
