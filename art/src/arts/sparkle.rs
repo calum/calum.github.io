@@ -1,21 +1,7 @@
-//! YOUR ART GOES HERE.
-//!
-//! This starter is a small placeholder that shows every input working: sparks
-//! follow the pointer, a click throws a burst, the wheel and the page scroll
-//! push them around, and any key changes their colour. Delete it all and make
-//! something wonderful. You only have to keep the three things the
-//! `Art` trait asks for: `new`, `frame`, and (optionally) `resize`.
-//!
-//! The rules of the canvas:
-//!
-//! - It sits over the whole window. Clicks, scrolling and typing still reach the
-//!   page underneath, and arrive here too.
-//! - `display` is empty at the start of every frame. Whatever you do not draw
-//!   shows the page (and its blue background) underneath.
-//! - Coordinates are cells, `(0, 0)` at the top left. `frame.cols` and
-//!   `frame.rows` are the size of the window in cells, and can change.
-//! - Only the character and its foreground colour are drawn. Use `'█'` for a solid block.
-//! - Colours are the 16 ANSI ones: `Colour::BrightYellow`, `Colour::Red`, ...
+//! Sparkle: sparks follow the pointer, a click throws a burst, the wheel and the
+//! page scroll push them sideways, any key changes their colour and Esc clears
+//! them. Copy this file as the starting point for a new animation (see
+//! `arts/mod.rs` for how to add it to the page).
 
 use crate::{Art, Colour, Display, Frame, KeyCode, Rng};
 
@@ -39,13 +25,13 @@ struct Spark {
     life: f32,
 }
 
-pub struct MyArt {
+pub struct Sparkle {
     sparks: Vec<Spark>,
     rng: Rng,
     colour: usize,
 }
 
-impl MyArt {
+impl Sparkle {
     fn spawn(&mut self, x: f32, y: f32, speed: f32) {
         if self.sparks.len() < MAX_SPARKS {
             self.sparks.push(Spark {
@@ -59,9 +45,9 @@ impl MyArt {
     }
 }
 
-impl Art for MyArt {
-    fn new(_cols: u32, _rows: u32, seed: u32) -> MyArt {
-        MyArt {
+impl Art for Sparkle {
+    fn new(_cols: u32, _rows: u32, seed: u32) -> Sparkle {
+        Sparkle {
             sparks: Vec::new(),
             rng: Rng::new(seed),
             colour: 0,

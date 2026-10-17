@@ -31,6 +31,9 @@
   };
   for (var f = 1; f <= 12; f++) KEYS["F" + f] = 20 + f;
 
+  // Block characters and how much of the cell they cover.
+  var SHADES = { 0x2588: 1, 0x2593: 0.75, 0x2592: 0.5, 0x2591: 0.25 };
+
   function stop(error) {
     running = false;
     canvas.remove();
@@ -82,8 +85,12 @@
           ctx.fillStyle = palette[colour];
           current = colour;
         }
-        if (ch === 0x2588) {
-          ctx.fillRect(x * cellW, y * cellH, Math.ceil(cellW), cellH); // solid block
+        var alpha = SHADES[ch];
+        if (alpha) {
+          // block characters are filled rather than typed, so they look the same in every font
+          ctx.globalAlpha = alpha;
+          ctx.fillRect(x * cellW, y * cellH, Math.ceil(cellW), cellH);
+          ctx.globalAlpha = 1;
         } else {
           ctx.fillText(String.fromCodePoint(ch), x * cellW, y * cellH + cellH / 2);
         }

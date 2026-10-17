@@ -1,6 +1,7 @@
 //! The plumbing that runs terminal art over the top of the site.
 //!
-//! You do not need to read this file to make art: write yours in `my_art.rs`.
+//! You do not need to read this file to make art: add yours in `arts/` (see
+//! `arts/mod.rs`).
 //!
 //! `overlay.js` (next to `index.html`) loads the compiled WebAssembly, sizes a
 //! character grid to the window, and forwards the pointer, wheel, scroll and
@@ -19,9 +20,15 @@
 //!   character, then `foreground | background << 8` as palette indexes
 //! - `palette(index)`: the `0xRRGGBB` value of a palette colour
 
-mod my_art;
+mod arts;
+mod sketch_art;
+mod world_art;
 
-pub use terminal_graphics_interactive::{Colour, Display, Key, KeyCode, Modifiers, Pointer};
+pub use sketch_art::SketchArt;
+pub use world_art::WorldArt;
+
+pub use terminal_graphics_interactive::prelude::*;
+pub use terminal_graphics_interactive::{Cell, Simulation};
 
 use std::cell::RefCell;
 
@@ -71,6 +78,94 @@ pub trait Art {
     /// shows the page underneath. Only the character and its colour are used,
     /// the background colour is ignored, so use `'█'` for a solid block.
     fn frame(&mut self, display: &mut Display, frame: &Frame);
+}
+
+/// Several arts drawn on top of one another, first to last, so a later one
+/// paints over an earlier one. Build it in `arts/mod.rs`.
+pub struct Layers {
+    layers: Vec<Box<dyn Art>>,
+    cols: u32,
+    rows: u32,
+    seed: u32,
+}
+
+impl Layers {
+    /// No layers yet, for a window of `cols` by `rows` cells.
+    pub fn new(cols: u32, rows: u32, seed: u32) -> Layers {
+        Layers {
+            layers: Vec::new(),
+            cols,
+            rows,
+            seed,
+        }
+    }
+
+    /// Adds the art `A`.
+    pub fn add<A: Art + 'static>(&mut self) {
+        let art = A::new(self.cols, self.rows, self.next_seed());
+        self.layers.push(Box::new(art));
+    }
+
+    /// Adds a [`World`] (balls, gravity, trails and so on) as a layer. Clicks
+    /// are left for the page; see [`Layers::world_clickable`].
+    pub fn world(&mut self, world: World) {
+        let art = WorldArt::new(&world, self.cols, self.rows, self.next_seed());
+        self.layers.push(Box::new(art));
+    }
+
+    /// Like [`Layers::world`], but a click adds a ball.
+    pub fn world_clickable(&mut self, world: World) {
+        let art = WorldArt::new(&world, self.cols, self.rows, self.next_seed()).clickable();
+        self.layers.push(Box::new(art));
+    }
+
+    /// Adds a sketch: `formula` is called for every cell, every frame, and
+    /// returns -1.0 to 1.0, which `palette` turns into a shade. The darkest
+    /// shade is left see-through. See the library's `sketch_with` examples.
+    pub fn sketch(&mut self, palette: Palette, formula: impl FnMut(&Cell) -> f32 + 'static) {
+        self.layers.push(Box::new(SketchArt::new(
+            palette, self.cols, self.rows, formula,
+        )));
+    }
+
+    /// Each layer gets its own seed.
+    fn next_seed(&self) -> u32 {
+        self.seed.wrapping_add(self.layers.len() as u32 * 7919)
+    }
+}
+
+impl Art for Layers {
+    fn new(cols: u32, rows: u32, seed: u32) -> Layers {
+        arts::all(Layers::new(cols, rows, seed))
+    }
+
+    fn resize(&mut self, cols: u32, rows: u32) {
+        (self.cols, self.rows) = (cols, rows);
+        for layer in &mut self.layers {
+            layer.resize(cols, rows);
+        }
+    }
+
+    fn frame(&mut self, display: &mut Display, frame: &Frame) {
+        for layer in &mut self.layers {
+            layer.frame(display, frame);
+        }
+    }
+}
+
+/// Copies the cells of `from` that have something in them onto `onto`. For
+/// arts that draw every cell, blanks included, which would wipe out the layers
+/// below them.
+pub(crate) fn paint_over(from: &Display, onto: &mut Display) {
+    for y in 0..from.height() as isize {
+        for x in 0..from.width() as isize {
+            if let Some(pixel) = from.pixel(x, y) {
+                if pixel.character() != ' ' {
+                    onto.set_pixel(x, y, pixel.character(), pixel.colour(), pixel.background());
+                }
+            }
+        }
+    }
 }
 
 /// A tiny random number generator, so the art needs no other crates.
@@ -123,8 +218,14 @@ impl<A: Art> Machine<A> {
     /// A machine with a grid of `cols` by `rows` cells (at least 1 by 1).
     pub fn new(cols: u32, rows: u32, seed: u32) -> Machine<A> {
         let (cols, rows) = (clamp_size(cols), clamp_size(rows));
+        Machine::from_art(A::new(cols, rows, seed), cols, rows)
+    }
+
+    /// A machine around an art you already made.
+    pub fn from_art(art: A, cols: u32, rows: u32) -> Machine<A> {
+        let (cols, rows) = (clamp_size(cols), clamp_size(rows));
         Machine {
-            art: A::new(cols, rows, seed),
+            art,
             display: Display::new(cols, rows),
             cells: vec![0; (cols * rows * 2) as usize],
             pointer: Pointer::default(),
@@ -301,7 +402,7 @@ pub fn decode_key(code: u32) -> Option<KeyCode> {
 // ---------------------------------------------------------------- exports
 
 thread_local! {
-    static MACHINE: RefCell<Machine<my_art::MyArt>> = RefCell::new(Machine::new(80, 24, 1));
+    static MACHINE: RefCell<Machine<Layers>> = RefCell::new(Machine::new(80, 24, 1));
 }
 
 #[no_mangle]
@@ -422,7 +523,10 @@ mod tests {
         assert_eq!(ch, 'P' as u32);
         assert_eq!(colours & 255, palette_index(Colour::Red));
         assert_eq!(colours >> 8, palette_index(Colour::Blue));
-        assert_eq!(palette(palette_index(Colour::Red)) >> 16, Colour::Red.rgb().0 as u32);
+        assert_eq!(
+            palette(palette_index(Colour::Red)) >> 16,
+            Colour::Red.rgb().0 as u32
+        );
     }
 
     #[test]
@@ -500,7 +604,14 @@ mod tests {
         m.key('a' as u32, 0);
         m.key(0x11_0000 + 5, 1 | 4);
         m.key(0x11_0000 + 22, 0);
-        assert_eq!(m.keys[1].modifiers, Modifiers { shift: true, alt: false, ctrl: true });
+        assert_eq!(
+            m.keys[1].modifiers,
+            Modifiers {
+                shift: true,
+                alt: false,
+                ctrl: true
+            }
+        );
         m.tick(40.0);
         assert_eq!(m.art.keys, [KeyCode::Char('a'), KeyCode::Up, KeyCode::F(2)]);
         assert!(m.keys.is_empty());
@@ -552,9 +663,71 @@ mod tests {
         }
     }
 
+    /// Fills the top row with its letter.
+    struct Row(char);
+
+    impl Art for Row {
+        fn new(_: u32, _: u32, _: u32) -> Row {
+            Row('?')
+        }
+        fn frame(&mut self, display: &mut Display, frame: &Frame) {
+            for x in 0..frame.cols as isize {
+                display.set_pixel(x, 0, self.0, Colour::Red, Colour::Black);
+            }
+        }
+    }
+
+    #[test]
+    fn layers_draw_in_order_and_later_ones_paint_over_earlier_ones() {
+        let mut layers = Layers::new(10, 5, 1);
+        layers.add::<Row>();
+        layers.add::<Probe>();
+        let mut m: Machine<Layers> = Machine::from_art(layers, 10, 5);
+        m.pointer(0, 2.0, 0.0);
+        m.tick(40.0);
+        let first = |x| m.cells[(x * 2) as usize];
+        assert_eq!(first(1), '?' as u32, "the first layer is still there");
+        assert_eq!(first(2), 'P' as u32, "the second paints over it");
+    }
+
+    #[test]
+    fn every_layer_is_told_about_a_resize() {
+        let mut layers = Layers::new(10, 5, 1);
+        layers.add::<Probe>();
+        layers.add::<Probe>();
+        let mut m: Machine<Layers> = Machine::from_art(layers, 10, 5);
+        m.resize(30, 9);
+        assert!(m.tick(40.0)); // both layers drew on the new grid without a panic
+    }
+
+    #[test]
+    fn layers_get_different_seeds() {
+        struct Seed(u32);
+        impl Art for Seed {
+            fn new(_: u32, _: u32, seed: u32) -> Seed {
+                Seed(seed)
+            }
+            fn frame(&mut self, display: &mut Display, frame: &Frame) {
+                display.set_pixel(
+                    self.0 as isize % frame.cols as isize,
+                    0,
+                    's',
+                    Colour::Red,
+                    Colour::Black,
+                );
+            }
+        }
+        let mut layers = Layers::new(10_000, 1, 0);
+        layers.add::<Seed>();
+        layers.add::<Seed>();
+        let mut m: Machine<Layers> = Machine::from_art(layers, 1000, 1);
+        m.tick(40.0);
+        assert_eq!(m.cells.chunks(2).filter(|c| c[0] == 's' as u32).count(), 2);
+    }
+
     #[test]
     fn the_real_art_runs() {
-        let mut m: Machine<my_art::MyArt> = Machine::new(120, 40, 7);
+        let mut m: Machine<Layers> = Machine::new(120, 40, 7);
         for _ in 0..100 {
             m.tick(33.4);
         }
