@@ -74,7 +74,7 @@ pub fn all(mut layers: Layers) -> Layers {
             .size(3.0)
             .gravity(-0.004)
             .trails()
-            .palette(Palette::mono()),
+            .palette(Palette::fire()),
     );
     layers
 }
