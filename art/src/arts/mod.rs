@@ -67,12 +67,12 @@ mod sparkle;
 pub fn all(mut layers: Layers) -> Layers {
     layers.add::<sparkle::Sparkle>();
 
-    // Bubbles float up (gravity is negative). Clicks go to the page, not to the bubbles.
+    // Fire balls!
     layers.world(
         World::new()
             .balls(4)
             .size(3.0)
-            .gravity(-0.004)
+            .gravity(0.0)
             .trails()
             .palette(Palette::fire()),
     );
@@ -81,13 +81,15 @@ pub fn all(mut layers: Layers) -> Layers {
     layers.sketch(Palette::ocean(), |cell| {
         let swell =
             (cell.x * 0.08 + cell.t).sin() * 0.5 + (cell.x * 0.19 - cell.t * 1.3).sin() * 0.25;
-        let surface = cell.height / 2.0 + swell * 6.0;
+        let surface = cell.height * 0.85 + swell * 6.0;
         let glow = (-(cell.dist_to_mouse() * 0.12)).exp();
         let shade = ((surface - cell.y) * 0.25 + glow * 0.5).clamp(-1.0, 1.0);
         // On a terminal the sky is solid white; on the page that would hide
         // everything, so the brightest shades are left see-through.
         if shade > 0.8 {
             -1.0
+        } else if shade < 0.0 {
+            -0.62 // below the waves a solid deep blue
         } else {
             shade
         }
